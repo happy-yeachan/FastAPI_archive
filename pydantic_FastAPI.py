@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-app = FastAPi()
+app = FastAPI()
 
 class Item(BaseModel):
     name: str

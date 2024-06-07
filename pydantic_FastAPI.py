@@ -1,14 +1,26 @@
+from urllib import response
 from fastapi import FastAPI
 from pydantic import BaseModel
 
 app = FastAPI()
 
-class Item(BaseModel):
+class UserInput(BaseModel):
     name: str
-    description: str = None
-    price: float
-    tax: float = None
+    age: int
 
-@app.post("/item/")
-async def create_item(item: Item):
-    return item
+class UserResponse(BaseModel):
+    name: str
+    age: int
+    is_adult: bool
+
+@app.post("/user/", response_model=UserResponse)
+def create_user(user: UserInput):
+    # 입력 받은 데이터를 처리
+    is_adult = user.age >= 18
+    # 응답 모델을 사용하여 응답ㄷ 데이터를 구성
+    response_data = UserResponse(
+        name = user.name,
+        age = user.age,
+        is_adult = is_adult
+    )
+    return response_data

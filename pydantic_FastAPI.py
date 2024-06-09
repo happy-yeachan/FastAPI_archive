@@ -17,7 +17,7 @@ class UserResponse(BaseModel):
 def create_user(user: UserInput):
     # 입력 받은 데이터를 처리
     is_adult = user.age >= 18
-    # 응답 모델을 사용하여 응답ㄷ 데이터를 구성
+    # 응답 모델을 사용하여 응답 데이터를 구성
     response_data = UserResponse(
         name = user.name,
         age = user.age,

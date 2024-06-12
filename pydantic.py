@@ -9,6 +9,7 @@ class Item(BaseModel):
 
 item = Item(name="Apple", descriptoin="Red fruit", price=5.5)
 item_json = item.json()
+print(item_json)
 item = Item.parse_raw(item_json)
 
 

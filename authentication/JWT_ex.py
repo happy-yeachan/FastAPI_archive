@@ -1,5 +1,3 @@
-from tkinter import DISABLED
-from click import Option
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
@@ -32,7 +30,7 @@ class User(BaseModel):
 
 # 유저인 DB 모델
 class UserInDB(User):
-    hashed_passwored: str
+    hashed_password: str
 
 oaouth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -64,7 +62,7 @@ def authenticate_user(fake_db, username: str, password: str):
         return False
     return user
 
-@app.post("/token", response_model=Token)
+@app.post("/token")
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(fake_users_db, form_data.username, form_data.password)
     if not user:
@@ -78,3 +76,32 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+# 토큰을 이용한 유저 인증
+async def get_current_user(token: str = Depends(oaouth2_scheme)):
+    credentials_exception = HTTPException(
+        status_code = status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validata credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token,SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+        token_data = username
+    except JWTError:
+        raise credentials_exception
+    user = get_user(fake_users_db, token_data)
+    if user is None:
+        raise credentials_exception
+    return user
+
+# 인증된 유저만 접근 가능한 라우트
+@app.get("/users/me", response_model=User)
+async def read_users_me(current_user: User = Depends(get_current_user)):
+    return current_user
